@@ -1,4 +1,0 @@
-Mirror Axis: 		Y
-Axis Location:		Box
-Alignment Holes:	(2.5,2.5),(2.5,27.5),(47.5,2.5),(47.5,27.5)
-Drill Dia:		3.0

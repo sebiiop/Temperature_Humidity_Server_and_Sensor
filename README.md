@@ -35,15 +35,17 @@ wiring.
 
 -Raspberry Pi server
 Install git with:
-    sudo apt-get install git
+    "sudo apt-get install git"
+  
+  Afterwards git clone the repository.
 
 Then setup the crontab jobs with:
-    bash Temperature_Humidity_Server_and_Sensor/setup_cronjob.sh
+    "bash Temperature_Humidity_Server_and_Sensor/setup_cronjob.sh"
 Please be aware here, that a cronjob file has to be implemented already. Check with 
-    crontab -e
+    "crontab -e"
 
 To start the installation script, use:
-    sudo bash Temperature_Humidity_Server_and_Sensor/install.sh
+    "sudo bash Temperature_Humidity_Server_and_Sensor/install.sh"
 This will install the remaining dependencies and restart the Raspberry Pi once it is finished.
 
 

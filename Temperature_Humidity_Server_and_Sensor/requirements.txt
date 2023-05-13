@@ -1,0 +1,7 @@
+apscheduler
+Flask
+matplotlib
+pandas
+requests
+flask
+subprocess.run

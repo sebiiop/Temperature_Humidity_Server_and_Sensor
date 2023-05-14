@@ -12,7 +12,6 @@ float hum_offset = 4.70; //offset value for humidity
 float battery_calibration = -2.00; // Check Battery voltage using multimeter & add/subtract the value
 
 
-
 //waits for ip adress of the server
 WiFiUDP udp;
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE];

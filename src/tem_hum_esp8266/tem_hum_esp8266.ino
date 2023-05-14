@@ -10,10 +10,11 @@ float temp_offset = -1.00; //offset value for temperature
 float hum_offset = -6.00; //offset value for humidity
 float calibration = -1.62; // Check Battery voltage using multimeter & add/subtract the value
 
-
+// Set up the server IP address and port
+//const char* SERVER = "192.168.1.119";
+//const int PORT = 1234;
 
 //waits for ip adress of the server
-WiFiUDP udp;
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE];
 IPAddress serverIP;
 const int PORT = 1234;
@@ -22,8 +23,8 @@ const int PORT = 1234;
 // SI7021 I2C address is 0x40(64)
 #define si7021Addr 0x40
 
-const char* ssid_list[] = {"", "", ""};
-const char* password_list[] = {"", "", ""};
+const char* ssid_list[] = {"Modem", "A1-Mesh-WLAN-953c8", "WLAN17919585"};
+const char* password_list[] = {"katzenklokatzenklo", "23238218744460743715", "ns6ruvRmjudF"};
 
 const int num_networks = sizeof(ssid_list) / sizeof(ssid_list[0]);
 int current_network = 0;
@@ -37,7 +38,7 @@ WiFiServer server(80);
 bool send_data(String board_id, float celsTemp, float humidity, float voltage, float bat_percentage) {
   // Connect to the server
   WiFiClient client;
-  if (!client.connect(serverIP, PORT)) {
+  if (!client.connect(SERVER, PORT)) {
     //delete the server ip address
     serverIP = IPAddress();
     Serial.println("Failed to connect to the server. ServerIP deleted.");
@@ -61,11 +62,6 @@ bool send_data(String board_id, float celsTemp, float humidity, float voltage, f
   // Close the connection
   client.stop();
   return true;
-}
-
-float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
-{
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 void setup() {
@@ -107,6 +103,12 @@ void setup() {
   server.begin();
   Serial.println("Server started");
 
+
+
+
+}
+
+void loop() {
   //ping to receive a ip address from the router
   const IPAddress remote_ip(8, 8, 8, 8);
   Serial.print("");
@@ -119,131 +121,129 @@ void setup() {
   } else {
     Serial.println("Error :(");
   }
-  
-  udp.begin(1234); // Port to listen for UDP messages
-  
-  Serial.println("Waiting for IP address");
-}
 
-void loop() {
-  if (serverIP == IPAddress()) {
+  //wait for the server to send it´s ip address to the esp8266
+  while (!serverIP) {
     int packetSize = udp.parsePacket();
     if (packetSize) {
-      IPAddress remoteIP = udp.remoteIP();
-      udp.read((char*)&serverIP, sizeof(serverIP));
-      Serial.print("Received UDP message from ");
-      Serial.println(remoteIP);
-      Serial.print("Server IP: ");
-      Serial.println(remoteIP);
-
-      udp.beginPacket(remoteIP, 1234); // Port to send the response
-      udp.write("IP received");
-      udp.endPacket();
-      Serial.println("Sent response to the server");
-
-      serverIP = remoteIP;
-      //Serial.println("Server address is " + serverIP);
-    
+      Serial.print("Received packet of size ");
+      Serial.println(packetSize);
+      udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+      Serial.print("Received packet contents: ");
+      Serial.println(packetBuffer);
+      serverIP = udp.remoteIP();
+      Serial.print("Server IP address: ");
+      Serial.println(serverIP);
+      // Save the server IP address for future use here
     }
-    
-  }
-  else {
   
-      //read sensor data
-      //add a 22k ohm resistor and a 47k ohm resistor. take the voltage between the two and connect to a0
-      int analogInPin  = A0;    // Analog input pin
-      int sensorValue;          // Analog Output of Sensor
-      int bat_percentage;
-    
-      sensorValue = analogRead(analogInPin);
-      float voltage = (((sensorValue * 3.3) / 1024) * 2 + battery_calibration); //multiply by two as voltage divider network is 100K & 100K Resistor
-     
-      bat_percentage = mapfloat(voltage, 2.8, 4.2, 0, 100); //2.8V as Battery Cut off Voltage & 4.2V as Maximum Voltage
-     
-      if (bat_percentage >= 100)
-      {
-        bat_percentage = 100;
-      }
-      if (bat_percentage <= 0)
-      {
-        bat_percentage = 1;
-      }
-     
-      Serial.print("Analog Value = ");
-      Serial.print(sensorValue);
-      Serial.print("\t Output Voltage = ");
-      Serial.print(voltage);
-      Serial.print("\t Battery Percentage = ");
-      Serial.println(bat_percentage);
-    
-      
-      unsigned int data[2];
-     
-      Wire.beginTransmission(si7021Addr);
-      //Send humidity measurement command
-      Wire.write(0xF5);
-      Wire.endTransmission();
-      delay(500);
-     
-      // Request 2 bytes of data
-      Wire.requestFrom(si7021Addr, 2);
-      // Read 2 bytes of data to get humidity
-      if(Wire.available() == 2)
-      {
-        data[0] = Wire.read();
-        data[1] = Wire.read();
-      }
-     
-      // Convert the data
-      float humidity  = ((data[0] * 256.0) + data[1]);
-      humidity = ((125 * humidity) / 65536.0) + hum_offset;
-     
-      Wire.beginTransmission(si7021Addr);
-      // Send temperature measurement command
-      Wire.write(0xF3);
-      Wire.endTransmission();
-      delay(500);
-     
-      // Request 2 bytes of data
-      Wire.requestFrom(si7021Addr, 2);
-     
-      // Read 2 bytes of data for temperature
-      if(Wire.available() == 2)
-      {
-        data[0] = Wire.read();
-        data[1] = Wire.read();
-      }
-     
-      // Convert the data
-      float temp  = ((data[0] * 256.0) + data[1]);
-      float celsTemp = ((175.72 * temp) / 65536.0) - 46.85 + temp_offset;
-    
-      // Output data to serial monitor
-      Serial.print("Humidity : ");
-      Serial.print(humidity);
-      Serial.println(" % RH");
-      Serial.print("Celsius : ");
-      Serial.print(celsTemp);
-      Serial.println(" C");
-      
-      
-      delay(1000);
-    
-    
-    
-      // Send the data to the server and wait for a response
-      if (send_data(board_id, celsTemp, humidity, voltage, bat_percentage)) {
-        // If the response was received, put the ESP8266 into deep sleep for 9 minutes
-        Serial.println("Going to sleep");
-        ESP.deepSleep(9 * 60 * 1000 * 1000);
-      } else {
-        // If the response was not received, wait for 5 seconds before retrying
-        delay(5000);
-      }
-    
-      
-      delay(1000);
-      Serial.println("Waking up");
+  //read sensor data
+  //add a 22k ohm resistor and a 47k ohm resistor. take the voltage between the two and connect to a0
+  int analogInPin  = A0;    // Analog input pin
+  int sensorValue;          // Analog Output of Sensor
+  int bat_percentage;
+
+  sensorValue = analogRead(analogInPin);
+  float voltage = (((sensorValue * 3.3) / 1024) * 2 + battery_battery_calibration); //multiply by two as voltage divider network is 100K & 100K Resistor
+ 
+  bat_percentage = mapfloat(voltage, 2.8, 4.2, 0, 100); //2.8V as Battery Cut off Voltage & 4.2V as Maximum Voltage
+ 
+  if (bat_percentage >= 100)
+  {
+    bat_percentage = 100;
+  }
+  if (bat_percentage <= 0)
+  {
+    bat_percentage = 1;
+  }
+ 
+  Serial.print("Analog Value = ");
+  Serial.print(sensorValue);
+  Serial.print("\t Output Voltage = ");
+  Serial.print(voltage);
+  Serial.print("\t Battery Percentage = ");
+  Serial.println(bat_percentage);
+
+
+
+  
+
+  //delay(10000);
+
+
+
+  
+  unsigned int data[2];
+ 
+  Wire.beginTransmission(si7021Addr);
+  //Send humidity measurement command
+  Wire.write(0xF5);
+  Wire.endTransmission();
+  delay(500);
+ 
+  // Request 2 bytes of data
+  Wire.requestFrom(si7021Addr, 2);
+  // Read 2 bytes of data to get humidity
+  if(Wire.available() == 2)
+  {
+    data[0] = Wire.read();
+    data[1] = Wire.read();
+  }
+ 
+  // Convert the data
+  float humidity  = ((data[0] * 256.0) + data[1]);
+  humidity = ((125 * humidity) / 65536.0) + hum_offset;
+ 
+  Wire.beginTransmission(si7021Addr);
+  // Send temperature measurement command
+  Wire.write(0xF3);
+  Wire.endTransmission();
+  delay(500);
+ 
+  // Request 2 bytes of data
+  Wire.requestFrom(si7021Addr, 2);
+ 
+  // Read 2 bytes of data for temperature
+  if(Wire.available() == 2)
+  {
+    data[0] = Wire.read();
+    data[1] = Wire.read();
+  }
+ 
+  // Convert the data
+  float temp  = ((data[0] * 256.0) + data[1]);
+  float celsTemp = ((175.72 * temp) / 65536.0) - 46.85 + temp_offset;
+
+  // Output data to serial monitor
+  Serial.print("Humidity : ");
+  Serial.print(humidity);
+  Serial.println(" % RH");
+  Serial.print("Celsius : ");
+  Serial.print(celsTemp);
+  Serial.println(" C");
+  
+  
+  delay(1000);
+
+
+
+  // Send the data to the server and wait for a response
+  if (send_data(board_id, celsTemp, humidity, voltage, bat_percentage)) {
+    // If the response was received, put the ESP8266 into deep sleep for 9 minutes
+    Serial.println("Going to sleep");
+    ESP.deepSleep(9 * 60 * 1000 * 1000);
+  } else {
+    // If the response was not received, wait for 5 seconds before retrying
+    delay(5000);
+  }
+
+  
+  delay(1000);
+  Serial.println("Waking up");
 
 }
+
+float mapfloat(float x, float in_min, float in_max, float out_min, float out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }

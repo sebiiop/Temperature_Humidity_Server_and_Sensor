@@ -49,6 +49,7 @@ def create_summarized_csv(device_names):
     
 
 def create_graph_from_csv(device_names):
+    
     number_of_measurement_points = 50
     subplots_adjust(hspace=0.000)
     number_of_subplots=len(device_names)
@@ -56,10 +57,12 @@ def create_graph_from_csv(device_names):
 
     if number_of_subplots < 2:
         df = pd.read_csv(f"{device_names[-1]}.csv")
-        df.columns =['timestamp', 'temperature', 'humidity', 'voltage', 'charge']
-        plt.plot(df['timestamp'], df['temperature'], label='Temperature')
-        plt.plot(df['timestamp'], df['humidity'], label='Humidity')
-        plt.plot(df['timestamp'], df['charge'], label='Charge')
+        plot_name = str(f"{device_names[-1]}")
+        df.columns =[f'{plot_name}_timestamp', f'{plot_name}_temperature', f'{plot_name}_humidity', f'{plot_name}_voltage', f'{plot_name}_charge']
+
+        plt.plot(df[f'{plot_name}_timestamp'], df[f'{plot_name}_temperature'], label=f'{plot_name}_Temperature')
+        plt.plot(df[f'{plot_name}_timestamp'], df[f'{plot_name}_humidity'], label=f'{plot_name}_Humidity')
+        plt.plot(df[f'{plot_name}_timestamp'], df[f'{plot_name}_charge'], label=f'{plot_name}_Charge')
 
         plt.legend()
 
@@ -72,24 +75,32 @@ def create_graph_from_csv(device_names):
 
 
     else:
+
+        print("\n\n")
+        print(device_names)
+        print("\n\n")
         fig, axs = plt.subplots(nrows=number_of_subplots, ncols=1, sharex=True)
 
         #create subplots according to device_names
         for i,v in enumerate(range(number_of_subplots)):
 
             #read from csv and save the last x-values
-            df = pd.read_csv(f"{device_names[v-1]}.csv")
-            df.columns =['timestamp', 'temperature', 'humidity', 'voltage', 'charge']
+            df = pd.read_csv(f"{device_names[v]}.csv")
+            plot_name = str(f"{device_names[v]}")
+            df.columns =[f'{plot_name}_timestamp', f'{plot_name}_temperature', f'{plot_name}_humidity', f'{plot_name}_voltage', f'{plot_name}_charge']
+            
             if len(df)>number_of_measurement_points:
                 df = df.tail(number_of_measurement_points)
+
+            print(df)
 
             #create the subplots
             v = v+1
             axs[v-2] = subplot(number_of_subplots,1,v)
             #ax1.plot(x,y)
-            axs[v-2].plot(df['timestamp'], df['temperature'], '-', label='Temperature')
-            axs[v-2].plot(df['timestamp'], df['humidity'], '-', label='Humidity')
-            axs[v-2].plot(df['timestamp'], df['charge'], '-', label='Battery_charge')
+            axs[v-2].plot(df[f'{plot_name}_timestamp'], df[f'{plot_name}_temperature'], '-', label=f'{plot_name}_Temperature')
+            axs[v-2].plot(df[f'{plot_name}_timestamp'], df[f'{plot_name}_humidity'], '-', label=f'{plot_name}_Humidity')
+            axs[v-2].plot(df[f'{plot_name}_timestamp'], df[f'{plot_name}_charge'], '-', label=f'{plot_name}_Battery_charge')
 
 
         # Add a legend to the big plot

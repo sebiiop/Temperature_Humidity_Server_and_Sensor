@@ -4,7 +4,7 @@
 #include <WiFiUdp.h>
 
 
-String board_id = "arduino1";
+String board_id = "arduino2";
 int deep_sleep_time_in_minutes = 5;
 
 float temp_offset = -1.00; //offset value for temperature

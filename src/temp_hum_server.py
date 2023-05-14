@@ -5,7 +5,8 @@ import os
 import random
 ## importing socket module
 import socket
-from datetime import datetime
+
+
 
 
 ## getting the hostname by socket.gethostname() method
@@ -27,7 +28,10 @@ app = Flask(__name__, static_url_path = "/static", static_folder = "static")
 scheduler = BackgroundScheduler()
 
 def run_script():
-    #print("Running request script...")
+    print("Running send_ip_to_esp8266 script...")
+    os.popen("python3 send_ip_to_esp8266")
+    print("Running dynamic_df_plot script...")
+    os.popen("python3 dynamic_df_plot")
     return render_template('index.html')
     
 
@@ -57,25 +61,13 @@ def add_header(response):
     return response
 
 if __name__ == '__main__':
-    #Timestamp for log
-    now = datetime.now()
-    print(now)
-
-    #Set the working directory for the script
     working_directory = os.getcwd()
-    if working_directory.endswith("src"):
-        os.chdir(working_directory)
-        print(f"The current working directory is:\n{working_directory}\n\n")
-    else:
-        working_directory = os.path.join(os.getcwd(), "Temperature_Humidity_Server_and_Sensor","src")
-        print(f"The current working directory is:\n{working_directory}\n\n")
-        os.chdir(working_directory)
-
-    print("Running request script...")
+    os.chdir(working_directory)
+    print("Running request_esp8266 script...")
     # Your script code goes here
-    #os.popen('python3 request_esp8266.py')
+    os.popen('python3 request_esp8266.py')
     
     port = 5000 + random.randint(0, 999)
     print(port)
 
-    app.run(host = ip_address, port="4200", debug=False, threaded=False)
+    app.run(host = ip_address, port="4200", debug=True, threaded=False)

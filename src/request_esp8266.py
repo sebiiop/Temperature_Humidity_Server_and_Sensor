@@ -6,6 +6,18 @@ import os
 import json
 from datetime import datetime
 
+working_directory = os.getcwd()
+os.chdir(working_directory)
+
+# Define the host and port to listen on
+HOST = '0.0.0.0'
+PORT = 1234
+
+# Initialize a dictionary to store the data from each device
+device_data = {}
+
+# Create a lock to prevent multiple threads from writing to the same file
+file_lock = threading.Lock()
 
 # Define a function to handle incoming client connections
 def handle_client(conn, addr):
@@ -99,31 +111,6 @@ def start_server():
 
         # Spawn a new thread to handle the client connection
         threading.Thread(target=handle_client, args=(conn, addr)).start()
-
-
-#Timestamp for log
-now = datetime.now()
-print(now)
-
-#Set the working directory for the script
-working_directory = os.getcwd()
-if working_directory.endswith("src"):
-    os.chdir(working_directory)
-    print(f"The current working directory is:\n{working_directory}\n\n")
-else:
-    working_directory = os.path.join(os.getcwd(), "Temperature_Humidity_Server_and_Sensor","src")
-    print(f"The current working directory is:\n{working_directory}\n\n")
-    os.chdir(working_directory)
-
-# Define the host and port to listen on
-HOST = '0.0.0.0'
-PORT = 1234
-
-# Initialize a dictionary to store the data from each device
-device_data = {}
-
-# Create a lock to prevent multiple threads from writing to the same file
-file_lock = threading.Lock()
 
 
 ## getting the hostname by socket.gethostname() method

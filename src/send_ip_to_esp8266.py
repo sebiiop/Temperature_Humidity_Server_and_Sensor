@@ -5,6 +5,7 @@ import csv
 import pandas as pd
 import matplotlib.pyplot as plt
 import socket
+from datetime import datetime
 
 
 def find_home_ip():
@@ -112,8 +113,19 @@ def request_data(home_ip_network, home_submask_ip):
         # Close the socket
         sock.close()
 
+#Timestamp for log
+now = datetime.now()
+print(now)
+
+#Set the working directory for the script
 working_directory = os.getcwd()
-os.chdir(working_directory)
+if working_directory.endswith("src"):
+    os.chdir(working_directory)
+    print(f"The current working directory is:\n{working_directory}\n\n")
+else:
+    working_directory = os.path.join(os.getcwd(), "Temperature_Humidity_Server_and_Sensor","src")
+    print(f"The current working directory is:\n{working_directory}\n\n")
+    os.chdir(working_directory)
 
 home_ip_network, home_submask_ip = find_home_ip()
 device_names = request_data(home_ip_network, home_submask_ip)

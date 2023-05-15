@@ -6,8 +6,19 @@ import os
 import json
 from datetime import datetime
 
+#Timestamp for log
+now = datetime.now()
+print(now)
+
+#Set the working directory for the script
 working_directory = os.getcwd()
-os.chdir(working_directory)
+if working_directory.endswith("src"):
+    os.chdir(working_directory)
+    print(f"The current working directory is:\n{working_directory}\n\n")
+else:
+    working_directory = os.path.join(os.getcwd(), "Temperature_Humidity_Server_and_Sensor","src")
+    print(f"The current working directory is:\n{working_directory}\n\n")
+    os.chdir(working_directory)
 
 # Define the host and port to listen on
 HOST = '0.0.0.0'

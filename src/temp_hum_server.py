@@ -3,15 +3,16 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 import os
 import random
-## importing socket module
+from datetime import datetime
+# importing socket module
 import socket
 
 
 
 
-## getting the hostname by socket.gethostname() method
+# getting the hostname by socket.gethostname() method
 hostname = socket.gethostname()
-## getting the IP address using socket.gethostbyname() method
+# getting the IP address using socket.gethostbyname() method
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(('8.8.8.8', 80))
 ip_address = s.getsockname()[0]
@@ -20,7 +21,7 @@ s.close()
 
 
 #ip_address = socket.gethostbyname(hostname)
-## printing the hostname and ip_address
+# printing the hostname and ip_address
 print(f"Hostname: {hostname}")
 print(f"IP Address: {ip_address}")
 
@@ -61,11 +62,24 @@ def add_header(response):
     return response
 
 if __name__ == '__main__':
+    #Timestamp for log
+    now = datetime.now()
+    print(now)
+
+    #Set the working directory for the script
     working_directory = os.getcwd()
-    os.chdir(working_directory)
-    print("Running request_esp8266 script...")
+    if working_directory.endswith("src"):
+        os.chdir(working_directory)
+        print(f"The current working directory is:\n{working_directory}\n\n")
+    else:
+        working_directory = os.path.join(os.getcwd(), "Temperature_Humidity_Server_and_Sensor","src")
+        print(f"The current working directory is:\n{working_directory}\n\n")
+        os.chdir(working_directory)
+
+
+    #print("Running request_esp8266 script...")
     # Your script code goes here
-    os.popen('python3 request_esp8266.py')
+    #os.popen('python3 request_esp8266.py')
     
     port = 5000 + random.randint(0, 999)
     print(port)

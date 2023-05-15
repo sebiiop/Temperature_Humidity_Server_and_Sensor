@@ -49,34 +49,14 @@ def request_data(home_ip_network, home_submask_ip):
     os.system(f'nmap -sn {home_ip_network}')
     time.sleep(10)
 
-    #look for the arduino ip adresses
-
-    for device in os.popen('arp -a'):
-        print("Step 2 - Find the client IP addresses\n\n") 
-        print(device)
-        device = str(device)
-        device = device.replace("[","")
-        device = device.replace("]","")
-        device = device.replace("(","")
-        device = device.replace(")","")
-        device = " ".join(device.split())
-        device = device.replace(" ",",")
-        print(device)
-        device = device.split(",")
-        print(device)
+    
+    for i in range(1,256):
+        ip = f"{home_submask_ip}.{i}"
+        device_ip.append(ip)
+        print(ip)
         
-        #find the ip address in the string
-        device = [i for i in device if home_submask_ip in i]
-        print(device)
     
-
     
-        device_ip.append(device[0])
-    
-
-    device_ip = [x for x in device_ip if '.' in x]
- 
-
     print("Step 3 - send IP address to esp8266\n\n")
     print(device_ip)
 
@@ -97,7 +77,7 @@ def request_data(home_ip_network, home_submask_ip):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         # Set a timeout of x seconds
-        sock.settimeout(1)
+        sock.settimeout(0.5)
 
         sock.sendto(bytes(MESSAGE, "utf-8"), (UDP_IP, UDP_PORT))
         print(f"Sent IP address to ESP: {ip}")
@@ -108,7 +88,7 @@ def request_data(home_ip_network, home_submask_ip):
             response = data.decode()
             print("Received response from ESP:", response)
         except socket.timeout:
-            print("No response received from ESP within 1 seconds")
+            print("No response received from ESP within 0.5 seconds")
 
         # Close the socket
         sock.close()
@@ -119,6 +99,7 @@ print(now)
 
 #Set the working directory for the script
 working_directory = os.getcwd()
+
 if working_directory.endswith("src"):
     os.chdir(working_directory)
     print(f"The current working directory is:\n{working_directory}\n\n")

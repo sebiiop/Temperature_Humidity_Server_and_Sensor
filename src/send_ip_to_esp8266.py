@@ -77,7 +77,7 @@ def request_data(home_ip_network, home_submask_ip):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         # Set a timeout of x seconds
-        sock.settimeout(0.5)
+        sock.settimeout(1)
 
         sock.sendto(bytes(MESSAGE, "utf-8"), (UDP_IP, UDP_PORT))
         print(f"Sent IP address to ESP: {ip}")
@@ -88,7 +88,7 @@ def request_data(home_ip_network, home_submask_ip):
             response = data.decode()
             print("Received response from ESP:", response)
         except socket.timeout:
-            print("No response received from ESP within 0.5 seconds")
+            print("No response received from ESP within 1 seconds")
 
         # Close the socket
         sock.close()
